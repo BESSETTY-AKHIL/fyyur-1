@@ -93,6 +93,7 @@ class Artist(db.Model):
     def __repr__(self):
         return f'<{self.id} {self.name}>'
 
+    # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
     # artist's property
     def upcoming_shows(self):
         current_time = datetime.now()
@@ -113,7 +114,6 @@ class Artist(db.Model):
                 "past_shows_count": past_shows_count,
                }
 
-    # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
     __tablename__ = 'show'
     id = db.Column(db.Integer, primary_key=True)
@@ -287,14 +287,31 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-
+  #TODO: insert form data as a new Venue record in the db, instead
+  #TODO: modify data to be the data object returned from db insertion
+  try:
+      new_venue = Venue(**{
+        "name":request.form['name'],
+        "city": request.form['city'],
+        "state": request.form['state'],
+        "address": request.form['address'],
+        "phone":  request.form['phone'],
+        "genres": request.form['genres'],
+        "facebook_link": request.form['facebook_link'],
+      })
+      db.session.add(new_venue)
+      db.session.commit()
   # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
+      flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  except:
+      db.session.rollback()
+      flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+  finally:
+      db.session.close()
+
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
