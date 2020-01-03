@@ -50,6 +50,27 @@ class Venue(db.Model):
     def __repr__(self):
         return f'<{self.id} {self.name}>'
 
+    # venue's property
+    def upcoming_shows(self):
+        current_time = datetime.now()
+        all_upcoming_shows = db.session.query(show).filter(Shows.start_time >= current_time)
+        self_upcoming_shows = all_upcoming_shows.filter_by(venue_id=self.id).all()
+        upcoming_shows_count = all_upcoming_shows.filter_by(venue_id=self.id).count()
+        return {"upcoming_shows": self_upcoming_shows,
+                "upcoming_shows_count": upcoming_shows_count
+               }
+
+    # venue's property
+    def past_shows(self):
+        current_time = datetime.now()
+        all_past_shows = db.session.query(show).filter(Shows.start_time < current_time)
+        self_past_shows = all_past_shows.filter_by(venue_id=self.id).all()
+        past_shows_count = all_past_shows.filter_by(venue_id=self.id).count()
+        return {"past_shows": self_past_shows,
+                "past_shows_count": past_shows_count,    
+               }
+
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
