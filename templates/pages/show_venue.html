@@ -48,8 +48,9 @@
 </div>
 <section>
 	<div>
-		<a href="/venues/delete"><button class="btn btn-default btn-lg">Delete this venue</button></a>
-	</div>
+				<a href="/venues/<venue_id>"><button class="btn btn-default btn-lg">Delete this venue</button></a>
+  </div>
+
 </section>
 <section>
 	<h2 class="monospace">{{ venue.upcoming_shows_count }} Upcoming {% if venue.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
@@ -79,5 +80,6 @@
 		{% endfor %}
 	</div>
 </section>
+
 
 {% endblock %}

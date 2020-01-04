@@ -9,6 +9,7 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy import func
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -155,27 +156,20 @@ def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
   #data= Venue.query.all()
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  city_state = db.session.query(Venue.state,Venue.city).group_by(Venue.state, Venue.city).all()
+  data =[]
+  # Add venue to an exisitng city, or a new city
+  for v in city_state:
+      city_state_venues = {"city":v.city, "state":v.state, "venues":[]}
+      venues_of_v = db.session.query(Venue.id,Venue.name).filter_by(city=v.city, state=v.state).all()
+      for venue in venues_of_v:
+          venue_dict = {}
+          venue_dict["id"] = venue[0]
+          venue_dict["name"] = venue[1]
+          venue_dict["num_upcoming_shows"] = Venue.upcoming_shows
+          city_state_venues["venues"].append(venue_dict)
+      data.append(city_state_venues)
+
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
@@ -183,15 +177,23 @@ def search_venues():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+
+  search_term = request.form['search_term'].lower()
+  venues_query = Venue.query.filter(func.lower(Venue.name).like('%{}%'.format(search_term.lower()))
+  ).all()
   response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(venues_query),
+    "data": []
   }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+  for venue in venues_query:
+      response["data"].append(
+           {
+                "id": venue.id,
+                "name": venue.name,
+                "num_upcoming_shows": venue.upcoming_shows,
+            }
+      )
+  return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -321,7 +323,16 @@ def delete_venue(venue_id):
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+   try:
+        Venue.query.filter_by(id=venue_id).delete()
+        db.session.commit()
+        print(f'{venue_name} was successfully deleted')
+   except:
+        db.session.rollback()
+        print(sys.exc_info())
+   finally:
+        db.session.close()
+   return jsonify({'success': True})
 
 #  Artists
 #  ----------------------------------------------------------------
