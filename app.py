@@ -5,7 +5,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -276,12 +276,14 @@ def delete_venue(venue_id):
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
    try:
-        Venue.query.filter_by(id=venue_id).delete()
+        venue=Venue.query.filter_by(Venue.id==venue_id).first()
+        name = venue.name
+        db.session.delete(venue)
         db.session.commit()
-        print(f'{venue_name} was successfully deleted')
+        flash('Venue ' + name + ' was successfully deleted.')
    except:
+        print("Oops!", sys.exc_info()[0], "occured.")
         db.session.rollback()
-        print(sys.exc_info())
    finally:
         db.session.close()
    return jsonify({'success': True})
