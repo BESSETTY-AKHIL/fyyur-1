@@ -47,8 +47,10 @@
 	</div>
 </div>
 <section>
-	<button type="submit" class="btn btn-primary btn-lg" data-id="{{ venue.id }}" onclick="editHandler(this)">Edit this venue</button>
-	<button type="submit" class="btn btn-primary btn-lg" data-id="{{ venue.id }}" onclick="deleteHandler(this)">Delete this venue</button>
+	<button type="submit" onclick="editClickHandler(this)" data-id="{{ venue.id }}"
+        style="width: 200px;">Edit Venue</button>
+	<button type="submit" onclick="deleteClickHandler(this)" data-id="{{ venue.id }}"
+        style="width: 200px;">Delete Venue</button>
 </section>
 
 <section>
@@ -81,19 +83,32 @@
 </section>
 
 <script>
-	function deleteHandler(e){
-		console.log('clicked')
-		const venue_id = e.target.dataset[venue.id];
-		fetch('/venues/' + venue_id, {
-			method: 'DELETE'
-		});
-		  .then(function () {
-						 window.location.href = `/venues`;
-		  })
-		  .catch(function (e) {
-						 console.log('error', e)
-		  })
-  }
+    function editClickHandler(e) {
+        console.log('clicked')
+        const venueId = e.dataset.id;
+        fetch(`/venues/${venueId}/edit`, {
+            method: 'GET'
+        })
+            .then(function () {
+                window.location.href = `/venues/${venueId}/edit`;
+            })
+            .catch(function (e) {
+                console.log('error', e)
+            })
+    }
+    function deleteClickHandler(e) {
+        console.log('clicked')
+        const venueId = e.dataset.id;
+        fetch('/venues/' + venueId, {
+            method: 'DELETE'
+        })
+            .then(function () {
+                window.location.href = `/venues`;
+            })
+            .catch(function (e) {
+                console.log('error', e)
+            })
+    }
 </script>
 
 
