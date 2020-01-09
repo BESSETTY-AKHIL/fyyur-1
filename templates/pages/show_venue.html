@@ -86,8 +86,8 @@
     function editClickHandler(e) {
         console.log('clicked')
         const venueId = e.dataset.id;
-        fetch(`/venues/${venueId}/edit`, {
-            method: 'GET'
+        fetch('/venues/'+ venueId +'/edit', {
+            method: 'POST'
         })
             .then(function () {
                 window.location.href = `/venues/${venueId}/edit`;

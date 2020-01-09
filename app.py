@@ -400,15 +400,12 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
   # catch exceptions with try-except block
     try:
         # load data from user input on form submit
 
         form = ArtistForm(request.form)
         artist = db.session.query(Artist).filter_by(id=artist_id).first()
-        artist.name = form.name.data
         artist.name = form.name.data
         artist.image_link = form.image_link.data
         artist.phone = form.phone.data
@@ -438,7 +435,7 @@ def edit_venue(venue_id):
   form = VenueForm()
 
   #get the venue by id
-  venue = Venue.query.filter_by(id=venue_id).first()
+  venue = Venue.query.get(venue_id)
 
   #load venue data
   venue={
@@ -449,23 +446,44 @@ def edit_venue(venue_id):
     "city": venue.city,
     "state": venue.state,
     "phone": venue.phone,
-    "website": venue.website,
     "facebook_link": venue.facebook_link,
-    "seeking_talent": venue.seeking_talent,
-    "seeking_description": venue.seeking_description,
-    "image_link": venue.image_link
-  }
-  # TODO: populate form with values from venue with ID <venue_id>
-  form.state.process_data(venue['state'])
-  form.genres.process_data(venue['genres'])
+    }
 
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
-  return redirect(url_for('show_venue', venue_id=venue_id))
+
+  # catch exceptions with try-except block
+    try:
+        # load data from user input on form submit
+
+        form = VenueForm(request.form)
+        venue = db.session.query(Venue).filter_by(id=venue_id).first()
+        venue.name = form.name.data
+        venue.genres = ",".join(form.genres.data)
+        venue.address = form.address.data
+        venue.city = form.city.data
+        venue.state = form.state.data
+        venue.phone = form.phone.data
+        venue.facebook_link = form.facebook_link.data
+
+
+        # commit the changes
+        db.session.commit()
+
+        flash('Venue ' + request.form['name'] + ' was successfully updated!')
+    except:
+        # catch all exceptions
+        db.session.rollback()
+        flash('An error occurred. Venue ' +
+              request.form['name'] + ' could not be updated.')
+    finally:
+        # always close the session
+        db.session.close()
+
+    # return redirect to venue page
+    return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
