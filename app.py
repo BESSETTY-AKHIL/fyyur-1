@@ -321,17 +321,17 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   #get a given artis
-  artist = Artist.query.filter_by(id=artist_id).first()
+  artist = db.session.query(Artist).filter_by(id=artist_id).first()
 
   #get all shows for given artis
-  shows = Show.query.filter_by(id=artist_id).all()
+  shows = Show.query.filter_by(artist_id=artist_id).all()
   #return upcoming shows
   def upcoming_shows():
       upcoming_shows = []
       for show in shows:
           if show.start_time >= datetime.now():
                 upcoming_shows.append({
-                    "venue_id": show.artis_id,
+                    "venue_id": show.venue_id,
                     "venue_name": Venue.query.filter_by(id=show.venue_id).first().name,
                     "venue_image_link": Venue.query.filter_by(id=show.venue_id).first().image_link,
                     "start_time": format_datetime(str(show.start_time))
@@ -514,6 +514,21 @@ def create_artist_submission():
   finally:
        db.session.close()
   return render_template('pages/home.html')
+
+@app.route('/artists/<artist_id>', methods=['DELETE'])
+def delete_artist(artist_id):
+   try:
+        artist_name = db.session.query(Artist).filter_by(id=artist_id).first().name
+        db.session.query(Artist).filter_by(id=artist_id).delete()
+        db.session.commit()
+        print(f'{artist_name} was successfully deleted')
+   except:
+        db.session.rollback()
+        print(sys.exc_info())
+   finally:
+        db.session.close()
+   # return jsonify({'success': True})
+   return redirect(url_for('artists'))
 
 #  Shows
 #  ----------------------------------------------------------------
