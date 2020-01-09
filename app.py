@@ -380,7 +380,7 @@ def edit_artist(artist_id):
     #get the artist by id
     artist = Artist.query.get(artist_id)
 
-    # TODO: populate form with fields from artist with ID <artist_id>
+    # populate form with fields from artist with ID <artist_id>
     artist={
     "id": artist.id,
     "name": artist.name,
@@ -537,7 +537,7 @@ def delete_artist(artist_id):
 def shows():
   all_shows = db.session.query(Show).all()
   data =[]
- # Add venue to an exisitng city, or a new city
+
   for show in all_shows:
        show_dict ={}
        show_dict["venue_id"] = show.venue_id
