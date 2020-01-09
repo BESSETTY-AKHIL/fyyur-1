@@ -103,7 +103,7 @@ class Artist(db.Model):
         current_time = datetime.now()
         all_past_shows = db.session.query(show).filter(Shows.start_time < current_time)
         artist_past_shows = all_past_shows.filter_by(artist_id=self.id).all()
-        past_shows_count = all_past_shows.filter_by(artist_id=self.id).count()
+        past_shows_count = artist_past_shows.count()
         return {"past_shows": artist_past_shows,
                 "past_shows_count": past_shows_count,
                }
@@ -185,10 +185,10 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   #get a given venue
-  venue = Venue.query.filter_by(id=venue_id).first()
+  venue = db.session.query(Venue).filter_by(id=venue_id).first()
 
   #get all shows for given venue
-  shows = Show.query.filter_by(id=venue_id).all()
+  shows = Show.query.filter_by(venue_id=venue_id).all()
   #return upcoming shows
   def upcoming_shows():
       upcoming_shows = []
@@ -236,6 +236,7 @@ def show_venue(venue_id):
   }
   return render_template('pages/show_venue.html', venue=data)
 
+
 #  Create Venue
 #  ----------------------------------------------------------------
 
@@ -271,19 +272,17 @@ def create_venue_submission():
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
    try:
-        venue = Venue.query.filter(Venue.id == venue_id).first()
-        name = venue.name
-        db.session.delete(venue)
+        venue_name = db.session.query(Venue).filter_by(id=venue_id).first().name
+        db.session.query(Venue).filter_by(id=venue_id).delete()
         db.session.commit()
-        flash('Venue ' + name + ' was successfully deleted.')
+        print(f'{venue_name} was successfully deleted')
    except:
-        print("Oops!", sys.exc_info()[0], "occured.")
         db.session.rollback()
-        flash('An error occurred. Venue ' + name + ' could not be deleted.')
+        print(sys.exc_info())
    finally:
         db.session.close()
    # return jsonify({'success': True})
-   return render_template('pages/home.html')
+   return redirect(url_for('venues'))
 
 #  Artists
 #  ----------------------------------------------------------------
